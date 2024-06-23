@@ -42,6 +42,7 @@ userRouter.post("/signup", async (c) => {
       token: token,
     });
   } catch (e) {
+    console.log(e);
     return c.text("Something went wrong", 403);
   }
 });
@@ -68,7 +69,6 @@ userRouter.post("/signin", async (c) => {
     }
 
     const token = await sign({ id: user.id }, c.env.JWT_SECRET);
-    // window.localStorage.setItem("token", "Bearer " + token);
 
     return c.json({
       token: token,

@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
-import { decode, sign, verify } from "hono/jwt";
+import { verify } from "hono/jwt";
 
 export const blogRouter = new Hono<{
   Bindings: {
@@ -14,14 +14,13 @@ export const blogRouter = new Hono<{
 }>();
 
 blogRouter.use("/*", async (c, next) => {
-  const jwt = c.req.header("Authorization");
+  const jwt = c.req.header("authorization") || "";
   if (!jwt) {
     c.status(401);
     return c.json({ error: "unauthorized" });
   }
-  const token = jwt.split(" ")[1];
   try {
-    const payload = await verify(token, c.env.JWT_SECRET);
+    const payload = await verify(jwt, c.env.JWT_SECRET);
     if (!payload) {
       c.status(401);
       return c.json({ error: "unauthorized" });
@@ -74,11 +73,22 @@ blogRouter.put("/", async (c) => {
   });
 });
 // TODO pagination
-blogRouter.get("/bluk", async (c) => {
+blogRouter.get("/bulk", async (c) => {
   const prisma = new PrismaClient({
     datasourceUrl: c.env?.DATABASE_URL,
   }).$extends(withAccelerate());
-  const post = await prisma.post.findMany();
+  const post = await prisma.post.findMany({
+    select: {
+      content: true,
+      title: true,
+      id: true,
+      author: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
 
   return c.json({
     post: post,
