@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { InputBox } from "./Inputbox";
 import axios from "axios";
+import { BACKEND_URL } from "../config";
 
 // TODO trpc
 export const Auth = ({ type }: { type: "signup" | "signin" }) => {
@@ -15,9 +16,7 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
   async function sendRequest() {
     try {
       const response = await axios.post(
-        `http://localhost:8787/api/v1/user/${
-          type === "signin" ? "signin" : "signup"
-        }`,
+        `${BACKEND_URL}/api/v1/user/${type === "signin" ? "signin" : "signup"}`,
         postInputs
       );
       const jwt = response.data.token;
